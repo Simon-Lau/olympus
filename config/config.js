@@ -8,7 +8,7 @@ var config = {
     app: {
       name: 'olympus'
     },
-    port: 3000,
+    port: process.env.PORT || 5000,
     db: 'mongodb://localhost:27017/olympus'
   },
 
@@ -17,7 +17,7 @@ var config = {
     app: {
       name: 'olympus'
     },
-    port: 3000,
+    port: process.env.PORT || 5000,
     db: 'mongodb://localhost/server-test'
   },
 
@@ -26,7 +26,7 @@ var config = {
     app: {
       name: 'olympus'
     },
-    port: 3000,
+    port: process.env.PORT || 3000,
     db: 'mongodb://catlike:123456@ds035333.mongolab.com:35333/olympus'
   }
 };
