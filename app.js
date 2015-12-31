@@ -13,6 +13,7 @@ db.on('error', function () {
 //models.forEach(function (model) {
 //  require(model);
 //});
+
 require(config.root + '/app/models');
 var app = express();
 
