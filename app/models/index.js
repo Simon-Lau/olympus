@@ -1,5 +1,6 @@
 module.exports = {
   models: [
-    require('./article')
+    require('./article'),
+    require('./user')
   ]
 };

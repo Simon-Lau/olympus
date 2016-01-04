@@ -1,18 +1,22 @@
 var express = require('express'),
   router = express.Router(),
   request = require('superagent'),
-  qs = require('qs');
+  wechartConfig = require('../../config/wechart'),
+  qs = require('qs'),
+  util = require('../util/util'),
+  mongoose = require('mongoose'),
+  User = mongoose.model('User');
 
 module.exports = function (app) {
   app.use(router);
 };
 
-var appId = '101277293',
-  key = 'd7b8f1f341ba8313c2ec806a1d5f30ba',
-  redirectUri = 'http%3A%2F%2Fcatlite-olympus.herokuapp.com%2Fapi%2Foauth2%2Fqq';
+var appId = wechartConfig.appId,
+  key = wechartConfig.key,
+  redirectUri = encodeURIComponent('http://catlite-olympus.herokuapp.com/api/oauth2/qq');
 
 router.get('/api/oauth2/qq', function (req, res, next) {
-  if (!req.query.code && !req.query.openid) {
+  if (!req.query.code) {
     res.redirect(301,
       'https://graph.qq.com/oauth2.0/authorize?response_type=code&client_id=' + appId
       + '&redirect_uri=' + redirectUri
@@ -42,9 +46,37 @@ router.get('/api/oauth2/qq', function (req, res, next) {
             if (err) {
               res.end('error');
             }
-            res.cookie('wx_openid', openId);
-            res.cookie('wx_access_token', resJson.access_token);
-            res.redirect('/');
+            var userInfo = JSON.parse(___res.text);
+            User.find({openid: openId}, function (err, _user) {
+              if (err) {
+                res.end('error');
+              }
+              var sessionId = util.randomChar(32);
+              if (!_user.length) {
+                var user = new User({
+                  nickname: userInfo.nickname,
+                  logo: userInfo.figureurl,
+                  gender: userInfo.gender,
+                  name: userInfo.nickname,
+                  sid: sessionId,
+                  openid: openId
+                });
+                user.openId = openId;
+                user.save(function (err) {
+                  res.cookie('sid', sessionId);
+                  res.redirect('/');
+                });
+              } else {
+                User.update({openid: openId}, {sid: sessionId}, function (err) {
+                  if (err) {
+                    res.end('error');
+                  }
+                  res.cookie('sid', sessionId);
+                  res.redirect('/');
+                })
+              }
+            });
+
           });
         });
     });

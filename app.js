@@ -9,11 +9,6 @@ db.on('error', function () {
   throw new Error('unable to connect to database at ' + config.db);
 });
 
-//var models = glob.sync(config.root + '/app/models/*.js');
-//models.forEach(function (model) {
-//  require(model);
-//});
-
 require(config.root + '/app/models');
 var app = express();
 
