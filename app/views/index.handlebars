@@ -3,5 +3,5 @@
 <p>Hello! {{user.nickname}}</p>
 <img src="{{user.logo}}" alt=""/>
 {{#unless user}}
-    <a href="/api/oauth2/qq">QQ登录</a>
+    <img src="img/Connect_logo_3.png" alt="QQ登陆" onclick="window.location.href='/api/oauth2/qq'"/>
 {{/unless}}
