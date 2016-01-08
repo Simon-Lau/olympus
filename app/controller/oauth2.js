@@ -20,7 +20,7 @@ router.get('/api/oauth2/qq', function (req, res, next) {
     res.redirect(301,
       'https://graph.qq.com/oauth2.0/authorize?response_type=code&client_id=' + appId
       + '&redirect_uri=' + redirectUri
-      + '&scope=scope');
+      + '&scope=get_user_info');
     return;
   }
   var url = 'https://graph.qq.com/oauth2.0/token?grant_type=authorization_code&client_id=' + appId
