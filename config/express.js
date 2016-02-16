@@ -14,13 +14,13 @@ module.exports = function (app, config) {
   app.locals.ENV = env;
   app.locals.ENV_DEVELOPMENT = env == 'development';
 
-  app.engine('handlebars', exphbs({
-    layoutsDir: config.root + '/app/views/layouts/',
-    defaultLayout: 'main',
-    partialsDir: [config.root + '/app/views/partials/']
-  }));
-  app.set('views', config.root + '/app/views');
-  app.set('view engine', 'handlebars');
+  //app.engine('handlebars', exphbs({
+  //  layoutsDir: config.root + '/app/views/layouts/',
+  //  defaultLayout: 'main',
+  //  partialsDir: [config.root + '/app/views/partials/']
+  //}));
+  //app.set('views', config.root + '/app/views');
+  //app.set('view engine', 'handlebars');
 
   // app.use(favicon(config.root + '/public/img/favicon.ico'));
   if (app.get('env') === 'development') {
