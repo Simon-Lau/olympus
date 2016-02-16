@@ -10,6 +10,7 @@ module.exports = function (app) {
 
 router.get('/', function (req, res, next) {
   res.redirect(301, 'index.html');
+  res.end();
   return;
   var sessionId = req.cookies.sid;
   User.find({sid: sessionId}, function (err, user) {
