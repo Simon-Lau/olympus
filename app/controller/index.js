@@ -1,6 +1,7 @@
 module.exports = {
   controllers: [
     'home',
-    'oauth2'
+    'oauth2',
+    'divio'
   ]
 };

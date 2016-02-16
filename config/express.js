@@ -23,6 +23,16 @@ module.exports = function (app, config) {
   app.set('view engine', 'handlebars');
 
   // app.use(favicon(config.root + '/public/img/favicon.ico'));
+  if (app.get('env') === 'development') {
+    app.use(function (req, res, next) {
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Credentials', true);
+      res.setHeader('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+      return next();
+    })
+  }
+
   app.use(logger('dev'));
   app.use(bodyParser.json());
   app.use(bodyParser.urlencoded({
@@ -30,7 +40,7 @@ module.exports = function (app, config) {
   }));
   app.use(cookieParser());
   app.use(compress());
-  app.use(express.static(config.root + '/public'));
+  app.use(express.static(config.root + '/public/dist'));
   app.use(methodOverride());
 
   require(config.root + '/app/controller').controllers.forEach(function (controller) {
