@@ -9,7 +9,7 @@ db.on('error', function () {
   throw new Error('unable to connect to database at ' + config.db);
 });
 
-require(config.root + '/app/models');
+require(config.root + '/app/model');
 var app = express();
 
 require('./config/express')(app, config);

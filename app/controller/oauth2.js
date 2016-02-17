@@ -9,7 +9,7 @@ var express = require('express'),
 
 module.exports = function (app) {
   app.use(router);
-}
+};
 
 var appId = wechartConfig.appId,
   key = wechartConfig.key,
