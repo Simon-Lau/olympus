@@ -53,8 +53,13 @@ router.get('/article-get/divio', function (req, res, next) {
           return null;
         }
         if (data && data.length > 0) {
+          // 已获取过的,热度+1
           data[0].hot++;
-          data[0].save();
+          data[0].save(function (err) {
+            if (err) {
+              console.log('article hot modify failed!');
+            }
+          });
           console.log('article: ' + this.title + ' already exists! now hot = ' + data[0].hot);
         }
         else {

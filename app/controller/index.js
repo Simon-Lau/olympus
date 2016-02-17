@@ -2,6 +2,7 @@ module.exports = {
   controllers: [
     'home',
     'oauth2',
-    'divio'
+    'divio',
+    'alloyteam'
   ]
 };
