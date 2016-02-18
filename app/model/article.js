@@ -14,6 +14,7 @@ var AuthorSchema = new Schema({
  * Article
  */
 var ArticleSchema = new Schema({
+  source: String,
   title: String,
   link: String,
   content: String,
