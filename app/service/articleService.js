@@ -10,13 +10,13 @@ function _saveOne(entity) {
     }
     if (data && data.length > 0) {
       // 已获取过的,热度+1
-      data[0].hot++;
-      data[0].save(function (err) {
-        if (err) {
-          console.log('article hot modify failed!');
-        }
-        console.log('article: ' + entity.title + ' already exists! now hot = ' + data[0].hot);
-      });
+      //data[0].hot++;
+      //data[0].save(function (err) {
+      //  if (err) {
+      //    console.log('article hot modify failed!');
+      //  }
+      //  console.log('article: ' + entity.title + ' already exists! now hot = ' + data[0].hot);
+      //});
     }
     else {
       new Article(entity).save(function (err) {
