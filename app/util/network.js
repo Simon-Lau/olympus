@@ -3,6 +3,7 @@ var request = require('request'),
 function get(params, callback) {
   request(params,
     function (error, response, data) {
+      console.log(params.url);
       if (error) callback(error || response.statusCode);
       if (!error && response.statusCode == 200) {
         var buffer = new Buffer(data);

@@ -7,29 +7,57 @@ var network = require('../util/network');
 var tianya_feeling_pre = 'http://bbs.tianya.cn';
 
 function _parse(data) {
-  var $ = cheerio.load(data),
-    topics = $('.home-topics ul li');
-  var result = [];
-  for (var i = 0, len = topics.length; i < len; i++) {
-    var topic = topics.eq(i);
-    var article = {
-      author: {
-        avatar: topic.find('.avatar img').attr('src'),
-        nickname: topic.find('.author').text(),
-        homepage: topic.find('.avatar').attr('href')
-      },
-      title: topic.find('h3 a').text(),
-      link: topic.find('h3 a').attr('href'),
-      desc: topic.find('p a').text(),
-      source: 'bbs-tianya-feeling'
-    };
-    result.push(article);
+  $ = cheerio.load(data, {decodeEntities: false});
+  var articles = [];
+  var tbodys = $('#main .mt5 table tbody');
+  // 从第二个tbody开始为正文
+  for (var i = 1, iLen = tbodys.length; i < iLen; i++) {
+    var tbody = $(tbodys[i]);
+    var trs = tbody.find('tr');
+    // 获取每个tbody里的tr,一个tr为一个article
+    for (var j = 0, jLen = trs.length; j < jLen; j++) {
+      var tds = $(trs[j]).find('td');
+      var homePageUrl = tds.eq(1).find('a').attr('href');
+      var article = {
+        source: 'bbstianya-feeling',
+        title: tds.eq(0).find('a').text(),
+        link: tianya_feeling_pre + tds.eq(0).find('a').attr('href'),
+        content: '',
+        desc: '',
+        author: {
+          nickname: tds.eq(1).find('a').text(),
+          avatar: homePageUrl.replace('www.tianya.cn', 'tx.tianyaui.com/logo'),
+          homepage: homePageUrl
+        },
+        hot: tds.eq(2).text()
+      };
+      if (article.hot > 100000) {
+        articles.push(article);
+      }
+    }
   }
-  return result;
+  var nextPage = $('.short-pages-2 .links a').eq($('.short-pages-2 .links a').length - 1);
+  var nextPageUrl = '';
+  if (nextPage.text() === '下一页') {
+    nextPageUrl = nextPage.attr('href');
+  }
+  return {
+    articles: articles,
+    nextPageUrl: nextPageUrl
+  };
 }
+
+function _catchArticleContent(articles) {
+
+}
+
 module.exports = {
   catchArticles: function (params) {
     if (params.url == '') return;
+
+    var self = arguments.callee;
+
+    // 获取html
     network.get({
       url: tianya_feeling_pre + params.url,
       timeout: 30000
@@ -37,56 +65,22 @@ module.exports = {
       if (err) {
         console.log('error: ');
         console.log(err);
-        return null;
+        return;
       }
-      // 将数据存到数据库
-      $ = cheerio.load(data, {decodeEntities: false});
-      var articles = [];
-      var tbodys = $('#main .mt5 table tbody');
-      //var nextPageUrl = tianya_feeling_pre + $('.short-pages-2 .links a').eq($('.short-pages-2 .links a').length - 1).attr('href');
-      var nextPageUrl = '';
-      // 从第二个tbody开始为正文
-      for (var i = 1, iLen = tbodys.length; i < iLen; i++) {
-        var tbody = $(tbodys[i]);
-        var trs = tbody.find('tr');
-        // 获取每个tbody里的tr,一个tr为一个article
-        for (var j = 0, jLen = trs.length; j < jLen; j++) {
-          var tds = $(trs[j]).find('td');
-          var article = {
-            source: 'bbstianya-feeling',
-            title: tds.eq(0).find('a').text(),
-            link: tianya_feeling_pre + tds.eq(0).find('a').attr('href'),
-            content: tds.eq(0).find('a').text(),
-            desc: tds.eq(0).find('a').text(),
-            author: {
-              nickname: tds.eq(1).find('a').text(),
-              avatar: '',
-              homepage: tds.eq(1).find('a').attr('href')
-            },
-            hot: tds.eq(2).text()
-          };
-          if (article.hot > 100000) {
-            //console.log(article);
-            articles.push(article);
-          }
-        }
-      }
-      var articleService = require('../service/articleService');
-      articleService.save(articles);
 
-      var nextPage = $('.short-pages-2 .links a').eq($('.short-pages-2 .links a').length - 1);
-      if (nextPage.text() === '下一页') {
-        nextPageUrl = nextPage.attr('href');
+      // 解析html
+      var parsedData = _parse(data);
+
+      // 将数据存到数据库
+      require('../service/articleService').save(parsedData.articles, function () {
         // 获取下一页数据
-        module.exports.catchArticles({
-          url: nextPageUrl
-        });
-      }
+        setTimeout(function () {
+          self.call(null, {
+            url: parsedData.nextPageUrl,
+            block: params.block
+          });
+        }, params.block);
+      });
     });
   }
 };
-
-var spider = require('./tianyaFeelingSpider');
-spider.catchArticles({
-  url: '/list-feeling-1.shtml'
-});

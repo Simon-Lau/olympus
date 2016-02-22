@@ -12,7 +12,8 @@ db.on('error', function () {
 require(config.root + '/app/model');
 
 spider.catchArticles({
-  url: '/list-feeling-1.shtml'
+  url: '/list-feeling-1.shtml',
+  block: 5000
 });
 
 
