@@ -3,7 +3,6 @@ var Article = mongoose.model('Article');
 var util = require('util');
 function _saveOne(entity, callback) {
   callback = typeof callback === 'function' ? callback : new Function;
-  // 保存前重复判断
   Article.find({link: entity.link}, function (err, data) {
     if (err) {
       console.log(err);
@@ -11,9 +10,12 @@ function _saveOne(entity, callback) {
       return null;
     }
     if (data && data.length > 0) {
-      callback(null, {
-        exist: true
+      entity.save(function(err){
+        callback(err, {
+          exist: true
+        });
       });
+
     }
     else {
       new Article(entity).save(function (err) {

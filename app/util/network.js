@@ -3,9 +3,8 @@ var request = require('request'),
 function get(params, callback) {
   request(params,
     function (error, response, data) {
-      console.log(params.url);
       if (error) callback(error || response.statusCode);
-      if (!error && response.statusCode == 200) {
+      else if (response.statusCode === 200) {
         var buffer = new Buffer(data);
         var encoding = response.headers['content-encoding'];
         if (encoding == 'gzip') {
@@ -19,6 +18,8 @@ function get(params, callback) {
         } else {
           callback(null, buffer.toString());
         }
+      } else {
+        callback(response, data);
       }
     });
 }

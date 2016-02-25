@@ -14,11 +14,12 @@ var AuthorSchema = new Schema({
  * Article
  */
 var ArticleSchema = new Schema({
+  finish: {type: Number, default: 0},
   source: String,
   title: String,
   link: String,
-  content: String,
-  desc: String,
+  content: [String],
+  desc: [String],
   author: AuthorSchema,
   hot: {type: Number, default: 0}
 });

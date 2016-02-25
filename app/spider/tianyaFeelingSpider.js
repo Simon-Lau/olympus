@@ -47,8 +47,19 @@ function _parse(data) {
   };
 }
 
-function _catchArticleContent(articles) {
-
+function _catchArticleContent(data) {
+  var content = [];
+  $ = cheerio.load(data, {decodeEntities: false});
+  var username = encodeURIComponent($('.atl-info span a').attr('uname'));
+  var blocks = $('.atl-main .atl-item');
+  for (var i = 0, len = blocks.length; i < len; i++) {
+    if ($(blocks[i]).attr('_host') === username) {
+      content.push($(blocks[i]).find('.bbs-content').html());
+    }
+  }
+  return {
+    content: content
+  }
 }
 
 module.exports = {
@@ -60,11 +71,12 @@ module.exports = {
     // 获取html
     network.get({
       url: tianya_feeling_pre + params.url,
-      timeout: 30000
+      timeout: 15000
     }, function (err, data) {
       if (err) {
-        console.log('error: ');
         console.log(err);
+        console.log('request error: ' + tianya_feeling_pre + params.url + ', retry......');
+        self.call(null, params);
         return;
       }
 
@@ -79,6 +91,65 @@ module.exports = {
             url: parsedData.nextPageUrl,
             block: params.block
           });
+        }, params.block);
+      });
+    });
+  },
+  catchArticleDetail: function (params, callback) {
+    var self = arguments.callee;
+    var articleService = require('../service/articleService');
+    var requestUrl = params.nextUrl || params.article.link;
+    console.log('request: ' + requestUrl);
+
+    network.get({
+      followRedirect: false,// 以30x为终止标识位
+      url: requestUrl,
+      timeout: 15000
+    }, function (err, data) {
+      if (err) {
+        if (err.statusCode && /3\d\d/.test(err.statusCode.toString())) {
+          params.article.finish = 1;
+          articleService.save(params.article, function (err) {
+            if (err) {
+              throw(err);
+            }
+            console.log('catch article ' + params.article.title + ' finished!');
+            callback(params.article);
+          });
+        } else if (err.statusCode && /[4-5]\d\d/.test(err.statusCode.toString())) {
+          callback(err);
+        } else {
+          console.log(err);
+          console.log('request error: ' + requestUrl + ', retry......');
+          self.call(null, params, callback);
+        }
+        return;
+      }
+
+      // 解析一页html
+      var parsedData = _catchArticleContent(data);
+      var currentPageNumber = Number(requestUrl.match(/.*-(\d+)\..*/)[1]);
+      var nextPage = requestUrl.replace(/(.*-)(\d+)(\..*)/, '$1' + (currentPageNumber + 1).toString() + '$3');
+
+      // 抓取前清除旧数据
+      if (currentPageNumber === 1) {
+        params.article.content = [];
+      }
+      // 将数据存到数据库
+      params.article.content = params.article.content.concat(parsedData.content);
+      articleService.save(params.article, function (err, data) {
+        if (err) {
+          console.log(err);
+          return;
+        }
+        console.log('save block success! now content length is ' + params.article.content.length);
+        // 获取下一页数据
+        setTimeout(function () {
+          self.call(null, {
+            article: params.article,
+            nextUrl: nextPage,
+            block: params.block
+          }, callback);
         }, params.block);
       });
     });
